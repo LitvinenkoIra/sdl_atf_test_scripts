@@ -40,21 +40,25 @@ local function getDataForModule(pModuleType, isSubscriptionActive)
           isSubscribed = isSubscriptionActive -- return current value of subscription
         })
     end)
-  :ValidIf(function(_, data) -- no subscribe parameter
-      if data.params.subscribe == nil then
-        return true
-      end
-      return false, 'Parameter "subscribe" is transfered with to HMI value: ' .. tostring(data.params.subscribe)
-    end)
 
   mobileSession:ExpectResponse(cid, { success = true, resultCode = "SUCCESS",
       moduleData = common.getModuleControlData(pModuleType)
     })
-  :ValidIf(function(_, data) -- no isSubscribed parameter
-      if data.payload.isSubscribed == nil then
-        return true
+  :ValidIf(function(_, data)
+      if isSubscriptionActive then
+        if data.payload.isSubscribed == isSubscriptionActive then
+          return true
+        else
+          return false,
+          'Parameter "isSubscribed" is transfered to App with value: ' .. tostring(data.payload.isSubscribed)
+        end
+      else
+        if data.payload.isSubscribed == nil then
+          return true
+        else
+          return false
+        end
       end
-      return false, 'Parameter "isSubscribed" is transfered to App with value: ' .. tostring(data.payload.isSubscribed)
     end)
 end
 
